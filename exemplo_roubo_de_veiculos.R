@@ -9,7 +9,6 @@ library(tidyverse)
 library(lubridate) #manipulação de datas
 library(janitor)
 
-
 # Leitura dos dados -------------------------------------------------------
 
 #Como o arquivo é .xls, a função do pacote readxl deveria funcionar.
@@ -35,7 +34,8 @@ base_bruta <- read.delim("dados/dados_bo_2021_roubodeveiculos_completa.xls", sep
 # a base carregou com somente uma coluna
 
 #Encoding: o jeito que o computador entende os caracteres. Como descobrir o encoding?
-readr::guess_encoding("dados/dados_bo_2021_roubodeveiculos_completa.xls", threshold = 0)
+readr::guess_encoding("dados/dados_bo_2021_roubodeveiculos_completa.xls", threshold = 0, n_max = 1000)
+#Se o arquivo for muito grande, usar o argumento n_max.
 #Devolve a probabilidade do arquivo ter determinado encoding.
 
 base_bruta <- readr::read_delim("dados/dados_bo_2021_roubodeveiculos_completa.xls",
@@ -46,6 +46,18 @@ base_bruta <- readr::read_delim("dados/dados_bo_2021_roubodeveiculos_completa.xl
 
 base_bruta <- read.delim("dados/dados_bo_2021_roubodeveiculos_completa.xls",
                                 sep = "\t", stringsAsFactors = FALSE, fileEncoding = "UTF-16LE")
+
+#É melhor descobrir o encoding no início do processo.
+
+
+# Experimentos - Manipulação  -------------------------------------------------
+
+base_bruta %>%
+  tibble::view()
+
+#Identificamos repetição de dados e outros problemas
+#No caso das repetições, o que não está repetido? Parei 2h:28m
+
 
 
 
