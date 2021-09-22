@@ -2,6 +2,9 @@
 #                       CURSO FAXINA DE DADOS - CURSO R                          #
 ##################################################################################
 
+# A ideia é mostrar todo o processo como ocorreu.
+# Este não é um script limpo, mas uma documentação do processo de limpeza.
+
 # Instalação de Pacotes --------------------------------------------------------
 
 library(readxl)
@@ -55,14 +58,77 @@ base_bruta <- read.delim("dados/dados_bo_2021_roubodeveiculos_completa.xls",
 base_bruta %>%
   tibble::view()
 
-#Identificamos repetição de dados e outros problemas
-#No caso das repetições, o que não está repetido? Parei 2h:28m
+base_bruta %>%
+  dplyr::glimpse()
+
+#Existem muitas colunas totalmente vazias, dados pessoais foram omitidos.
+#Identificamos repetição de dados e outros problemas.
+#Várias vitimas na mesma ocorrência?
+#No caso das repetições, o que não está repetido? Vamos limpar todas as repetições.
+
+#Qual unidade que irei considerar? No final tem que ter 1 linha da base para cada unidade.
+#Preciso encontrar a chave.Perguntar para alguém, consultar documentação.
+#Ou tentar entender a base para achar a chave.
+#Neste caso, existe documentação para consultar.
+
+#A unidade é a ocorrência?
+base_bruta %>%
+  count(ANO_BO, NUM_BO,DELEGACIA_CIRCUNSCRICAO, DELEGACIA_NOME)
+
+#Casos particulares:
+
+base_bruta %>%
+  filter(
+    NUM_BO == 23, ANO_BO == 2021, DELEGACIA_NOME == "DEIC-5ª DELEGACIA DA DISCCPAT"
+  ) %>%
+  tibble::view()
 
 
+#A unidade é o carro roubado?
+base_bruta %>%
+  count(ANO_BO, NUM_BO,DELEGACIA_CIRCUNSCRICAO, DELEGACIA_NOME, PLACA_VEICULO, ESPECIE, RUBRICA) %>%
+  filter(n > 1)
+
+#Ainda há repetições. Vamos descobrir o motivo:
+
+base_bruta %>%
+  filter(ANO_BO == 2021, NUM_BO == 1347, DELEGACIA_NOME == "16º D.P. VILA CLEMENTINO") %>%
+  tibble::view()
+
+# Parece que a coluna status também gera as repetições
+
+base_bruta %>%
+  count(ANO_BO, NUM_BO,DELEGACIA_CIRCUNSCRICAO, DELEGACIA_NOME, PLACA_VEICULO, STATUS, ESPECIE, RUBRICA) %>%
+  filter(n > 1)
 
 
+#Ainda há repetições. Vamos descobrir o motivo:
+
+base_bruta %>%
+  filter(ANO_BO == 2021, NUM_BO == 1692, DELEGACIA_NOME == "69º D.P. TEOTONIO VILELA") %>%
+  tibble::view()
+
+# Parece que a coluna status também gera as repetições
+
+base_bruta %>%
+  count(ANO_BO, NUM_BO,DELEGACIA_CIRCUNSCRICAO, DELEGACIA_NOME, PLACA_VEICULO, DESCR_MARCA_VEICULO, DESCR_COR_VEICULO, STATUS, ESPECIE, RUBRICA, DESDOBRAMENTO) %>%
+  filter(n > 1)
+
+#Ainda há repetições. Vamos descobrir o motivo:
+
+base_bruta %>%
+  filter(ANO_BO == 2021, NUM_BO == 437009, DELEGACIA_NOME == "DELEGACIA ELETRONICA") %>%
+  tibble::view()
+
+# Parece que a coluna status também gera as repetições
+
+base_brut5a %>%
+  count(ANO_BO, NUM_BO,DELEGACIA_CIRCUNSCRICAO, DELEGACIA_NOME, PLACA_VEICULO, DESCR_MARCA_VEICULO, DESCR_COR_VEICULO, CIDADE_VEICULO, STATUS, ESPECIE, RUBRICA, DESDOBRAMENTO) %>%
+  filter(n > 1)
+
+#Agora encontramos a chave e não há mais repetições. Vamos usar carro como unidade.
 
 
+# Arrumar o nome das colunas ----------------------------------------------
 
-
-
+base_nomes_arrumados <- 
