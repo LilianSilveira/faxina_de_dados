@@ -179,11 +179,15 @@ ocorrencias <- base_nomes_arrumados_preenchida %>%
                 placa_veiculo:ano_fabricacao) %>%
   dplyr::distinct()
 
+ocorrencias %>% tibble::view()
+
 # Veículos
 
 veiculos <- base_nomes_arrumados_preenchida %>%
   dplyr::select(placa_veiculo:ano_fabricacao) %>%
   dplyr::distinct()
+
+veiculos %>% tibble::view()
 
 # Crimes
 
@@ -221,6 +225,24 @@ crimes_passo2b %>% tibble::view()
 
 #Opção C - nest: transformar as linhas da tabela de crimes em uma list-column
 
+crimes_passo2c <- crimes_passo1 %>%
+  dplyr::group_by(num_bo, ano_bo, delegacia_nome, delegacia_circunscricao) %>%
+  tidyr::nest()
 
+crimes_passo2c$data[[1]] %>% tibble::view()
+# A info de crimes vira uma tibble
+
+
+# Construção da Tabela Final--------------------------------------------------
+
+
+base_final_tidy <- veiculos %>%
+  dplyr::left_join(ocorrencias, by = c('placa_veiculo', 'uf_veiculo', 'cidade_veiculo',
+                                       'descr_cor_veiculo', 'descr_marca_veiculo',
+                                       'ano_fabricacao')) %>%
+  dplyr::left_join(crimes_passo2c)
+
+base_final_tidy %>% tibble::view()
+  
 
 
