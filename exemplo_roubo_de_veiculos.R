@@ -44,10 +44,10 @@ readr::guess_encoding("dados/dados_bo_2021_roubodeveiculos_completa.xls", thresh
 base_bruta <- readr::read_delim("dados/dados_bo_2021_roubodeveiculos_completa.xls",
                                 delim = "\t", locale = readr::locale(encoding = "UTF-16LE"))
 
-#Com a versão mais recente do readr, funciona.
+#Com a versão mais recente do readr, funciona. Esta é a melhor solução neste caso.
 #Outra opção que funciona neste caso:
 
-base_bruta <- read.delim("dados/dados_bo_2021_roubodeveiculos_completa.xls",
+base_bruta <- utils::read.delim("dados/dados_bo_2021_roubodeveiculos_completa.xls",
                                 sep = "\t", stringsAsFactors = FALSE, fileEncoding = "UTF-16LE")
 
 #É melhor descobrir o encoding no início do processo.
@@ -68,8 +68,8 @@ base_bruta %>%
 
 #Qual unidade que irei considerar? No final tem que ter 1 linha da base para cada unidade.
 #Preciso encontrar a chave.Perguntar para alguém, consultar documentação.
-#Ou tentar entender a base para achar a chave.
-#Neste caso, existe documentação para consultar.
+#Ou tentar entender a base para achar a chave por tentativa e erro.
+#Neste caso, existe documentação para consultar no site da SSP.
 
 #A unidade é a ocorrência?
 base_bruta %>%
@@ -168,7 +168,7 @@ base_nomes_arrumados_preenchida %>%
 # Estratégia:
 # Separar as três bases e montar a base final fazendo joins (left_join)
 # a partir da base de unidade que eu escolher(no caso, veículo)
-# as bases vão ser ocorrencias, crimes e carros
+# as bases vão ser ocorrências, crimes e carros.
 # dentro de cada base, escolher colunas e remover duplicações
 # juntar as bases pelas chaves correspondentes
 
@@ -230,6 +230,8 @@ crimes_passo2c <- crimes_passo1 %>%
   tidyr::nest()
 
 crimes_passo2c$data[[1]] %>% tibble::view()
+
+
 # A info de crimes vira uma tibble
 
 
@@ -243,6 +245,22 @@ base_final_tidy <- veiculos %>%
   dplyr::left_join(crimes_passo2c)
 
 base_final_tidy %>% tibble::view()
+
+
+# Limpeza de repetições e finalização -----------------------------------------
+
+
+veiculos %>%
+  left_join(ocorrencias) # resulta em 3151 obs; repetição de carro em ocorrências
+
+
+ocorrencias %>%
+  count(across(placa_veiculo:ano_fabricacao)) %>%
+  count(n) # retorna o número de repetições
+
+
+
+  
   
 
 
