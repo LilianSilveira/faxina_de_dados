@@ -175,11 +175,24 @@ base_nomes_arrumados_preenchida %>%
 # Ocorrências
 
 ocorrencias <- base_nomes_arrumados_preenchida %>%
+  dplyr::mutate(
+    dataocorrencia = lubridate::dmy(dataocorrencia),
+    datacomunicacao = lubridate:: dmy(datacomunicacao),
+    dataelaboracao = lubridate:: dmy_hms(dataelaboracao),
+    bo_emitido = lubridate::dmy_hms(bo_emitido)) %>%
   dplyr::select(ano_bo:delegacia_circunscricao,
                 placa_veiculo:ano_fabricacao) %>%
-  dplyr::distinct()
+  dplyr::distinct() %>%
+  dplyr::group_by(across(placa_veiculo:ano_fabricacao)) %>%
+  dplyr::filter(
+    dataelaboracao == min(dataelaboracao) &
+    datacomunicacao == min(datacomunicacao) &
+    bo_emitido == min(bo_emitido)
+  )
 
 ocorrencias %>% tibble::view()
+
+glimpse(base_nomes_arrumados_preenchida)
 
 # Veículos
 
@@ -234,7 +247,7 @@ crimes_passo2c$data[[1]] %>% tibble::view()
 
 # A info de crimes vira uma tibble
 
-
+##############################################################################
 # Construção da Tabela Final--------------------------------------------------
 
 
@@ -258,9 +271,30 @@ ocorrencias %>%
   count(across(placa_veiculo:ano_fabricacao)) %>%
   count(n) # retorna o número de repetições
 
+ocorrencias %>% count(across(placa_veiculo:ano_fabricacao)) %>%
+  filter (n>1) %>%
+  View() #traz uma lista com as contagens > 1
 
+ocorrencias %>% filter(placa_veiculo == 'APH8595') %>% View() # Ver as duplicações
+#num de bo são diferentes, mas parece a mesma ocorrencia.
+#O que muda é a data da comunicação. Inconsistência.
 
-  
-  
+ocorrencias %>% filter(placa_veiculo == 'DG2X622') %>% View()
+#vários campos diferentes, mas ocorrência no mesmo dia.
+# Inconsistência
+
+ocorrencias %>%
+  count(across(placa_veiculo:ano_fabricacao)) %>%
+  dplyr::ungroup() %>%
+  count(n) # retorna o número de repetições depois que os dados foram agrupados
+
+ocorrencias %>% count(across(placa_veiculo:ano_fabricacao)) %>%
+  dplyr::ungroup() %>%
+  filter (n>1) %>%
+  View() #traz uma lista com as contagens > 1
+
+ocorrencias %>% filter(placa_veiculo == 'DG2X622') %>% View()
+# testar as placas e ajustar o codigo de "ocorrencias" até não restarem duplicatas.
+
 
 
