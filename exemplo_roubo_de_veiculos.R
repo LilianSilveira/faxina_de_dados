@@ -184,10 +184,13 @@ ocorrencias <- base_nomes_arrumados_preenchida %>%
                 placa_veiculo:ano_fabricacao) %>%
   dplyr::distinct() %>%
   dplyr::group_by(across(placa_veiculo:ano_fabricacao)) %>%
+  #Os bo duplicados ficam armazenados aqui:
+  dplyr::mutate(
+    bos_duplicados = paste0(numero_boletim, collapse = ", ")) %>%
   dplyr::filter(
-    dataelaboracao == min(dataelaboracao) &
-    datacomunicacao == min(datacomunicacao) &
-    bo_emitido == min(bo_emitido)
+    dataelaboracao == max(dataelaboracao) &
+    datacomunicacao == max(datacomunicacao) &
+    bo_emitido == max(bo_emitido)
   )
 
 ocorrencias %>% tibble::view()
@@ -266,7 +269,6 @@ base_final_tidy %>% tibble::view()
 veiculos %>%
   left_join(ocorrencias) # resulta em 3151 obs; repetição de carro em ocorrências
 
-
 ocorrencias %>%
   count(across(placa_veiculo:ano_fabricacao)) %>%
   count(n) # retorna o número de repetições
@@ -295,6 +297,35 @@ ocorrencias %>% count(across(placa_veiculo:ano_fabricacao)) %>%
 
 ocorrencias %>% filter(placa_veiculo == 'DG2X622') %>% View()
 # testar as placas e ajustar o codigo de "ocorrencias" até não restarem duplicatas.
+
+# RODAR A BASE FINAL NOVAMENTE
+
+#A diferença entre o num obs. nas bases veiculos e base_final_tidy deve-se
+#a veiculos sem informações da ocorrencia:
+
+veiculos %>%
+  left_join(ocorrencias) %>%
+  filter(is.na(numero_boletim)) %>% 
+  View()
+
+
+# Refazer a base final ----------------------------------------------------
+
+base_final_tidy <- veiculos %>%
+  dplyr::left_join(ocorrencias, by = c('placa_veiculo', 'uf_veiculo', 'cidade_veiculo',
+                                       'descr_cor_veiculo', 'descr_marca_veiculo',
+                                       'ano_fabricacao')) %>%
+  dplyr::left_join(crimes_passo2c) %>%
+  dplyr::select(-ano_bo, -num_bo) %>%
+  dplyr::mutate(
+    bo_iniciado = lubridate::dmy_hms(bo_iniciado),
+    datacomunicacao = lubridate::dmy(datacomunicacao),
+    horaocorrencia = lubridate::hm(horaocorrencia)
+  )
+
+base_final_tidy %>% tibble::view()
+
+#Ainda existen ajustes: várias colunas com uma var. e datas erradas?
 
 
 
